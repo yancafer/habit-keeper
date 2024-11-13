@@ -1,62 +1,51 @@
 "use client";
-
 import { useState } from 'react';
 import { supabase } from '@/utils/supabaseClient';
-import { useRouter } from 'next/navigation';
 
-const Signup = () => {
+const SignupPage = () => {
   const [fullName, setFullName] = useState('');
+  const [birthDate, setBirthDate] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const router = useRouter();
+  const [error, setError] = useState('');
 
-  const handleSignup = async () => {
-    const { data, error } = await supabase.auth.signUp({
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
         data: {
           full_name: fullName,
+          birth_date: birthDate,
         },
       },
     });
 
     if (error) {
-      alert(`Erro ao criar conta: ${error.message}`);
-      return;
-    }
-
-    const user = data?.user;
-
-    if (user) {
-      const { error: insertError } = await supabase.from('users').insert([
-        {
-          id: user.id,
-          email: user.email,
-          full_name: fullName,
-          subscription_level: 'free',
-        },
-      ]);
-
-      if (insertError) {
-        alert('Erro ao salvar na tabela Users: ' + insertError.message);
-        return;
-      }
-
-      alert('Cadastro realizado com sucesso! Verifique seu e-mail para confirmar o cadastro.');
-      router.push('/signin');
+      setError(error.message);
+    } else {
+      alert('Cadastro realizado com sucesso! Verifique seu e-mail para confirmar sua conta.');
     }
   };
 
   return (
-    <div>
-      <h1>Signup</h1>
+    <form onSubmit={handleSignup}>
+      <h2>Cadastro de Usuário</h2>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       <input
         type="text"
-        placeholder="Nome completo"
+        placeholder="Nome Completo"
         value={fullName}
         onChange={(e) => setFullName(e.target.value)}
+        required
+      />
+      <input
+        type="date"
+        placeholder="Data de Nascimento"
+        value={birthDate}
+        onChange={(e) => setBirthDate(e.target.value)}
         required
       />
       <input
@@ -73,9 +62,9 @@ const Signup = () => {
         onChange={(e) => setPassword(e.target.value)}
         required
       />
-      <button onClick={handleSignup}>Sign Up</button>
-    </div>
+      <button type="submit">Cadastrar</button>
+    </form>
   );
 };
 
-export default Signup;
+export default SignupPage;
