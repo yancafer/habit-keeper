@@ -20,19 +20,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (!error && data.user) {
-        setUser(data.user);
+      const sessionUser = sessionStorage.getItem('user');
+      if (sessionUser) {
+        setUser(JSON.parse(sessionUser));
+        setLoading(false);
       } else {
-        setUser(null);
+        const { data, error } = await supabase.auth.getUser();
+        if (!error && data.user) {
+          setUser(data.user);
+          sessionStorage.setItem('user', JSON.stringify(data.user));
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     checkUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        sessionStorage.setItem('user', JSON.stringify(currentUser));
+      } else {
+        sessionStorage.removeItem('user');
+      }
     });
 
     return () => {
@@ -43,6 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    sessionStorage.removeItem('user');
     router.push('/signin');
   };
 
