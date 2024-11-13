@@ -7,17 +7,27 @@ import { useRouter } from 'next/navigation';
 const Signin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSignin = async () => {
+    setError(''); // Limpa erros anteriores
+
+    if (!email || !password) {
+      setError('Por favor, preencha todos os campos.');
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) alert(error.message);
+
+    if (error) setError(error.message);
     else router.push('/dashboard');
   };
 
   return (
     <div>
       <h1>Login</h1>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       <input
         type="email"
         placeholder="Email"
