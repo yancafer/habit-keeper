@@ -65,7 +65,12 @@ const SignupPage = () => {
         ]);
 
         if (insertError) throw insertError;
+
         alert('Cadastro realizado com sucesso! Verifique seu e-mail para confirmar sua conta.');
+        setFullName('');
+        setBirthDate('');
+        setEmail('');
+        setPassword('');
         router.push('/signin');
       } else {
         setError('Erro inesperado: usuário não registrado.');
@@ -77,7 +82,6 @@ const SignupPage = () => {
         setError('Ocorreu um erro desconhecido.');
       }
     } finally {
-      setPassword('');
       setLoading(false);
     }
   };
