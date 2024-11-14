@@ -23,11 +23,10 @@ const Dashboard = () => {
   const [taskGroups, setTaskGroups] = useState<TaskGroup[]>([]);
   const [groupTitle, setGroupTitle] = useState('');
   const [groupDescription, setGroupDescription] = useState('');
-  const [taskTitle, setTaskTitle] = useState('');
-  const [taskStatus, setTaskStatus] = useState<'pending' | 'in_progress' | 'completed'>('pending');
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
-  const [isCreatingTask, setIsCreatingTask] = useState(false);
   const router = useRouter();
+
+  const [taskInputs, setTaskInputs] = useState<{ [groupId: string]: { title: string; status: 'pending' | 'in_progress' | 'completed' | '' } }>({});
 
   useEffect(() => {
     if (!loading && !user) {
@@ -39,7 +38,7 @@ const Dashboard = () => {
 
   const fetchTaskGroups = async (userId: string) => {
     const { data: groupsData, error: groupsError } = await supabase
-      .from('taskgroups') // Nome da tabela ajustado para caixa baixa
+      .from('taskgroups')
       .select('id, title, description')
       .eq('user_id', userId);
 
@@ -83,7 +82,7 @@ const Dashboard = () => {
     setIsCreatingGroup(true);
 
     const { data, error } = await supabase
-      .from('taskgroups')  // Nome da tabela ajustado para caixa baixa
+      .from('taskgroups')
       .insert([
         {
           user_id: user.id,
@@ -110,25 +109,22 @@ const Dashboard = () => {
   };
 
   const createTask = async (groupId: string) => {
-    if (!taskTitle.trim()) {
+    const taskInput = taskInputs[groupId];
+    if (!taskInput?.title.trim()) {
       alert('O título da tarefa é obrigatório');
       return;
     }
 
-    setIsCreatingTask(true);
-
     const { data, error } = await supabase
-      .from('tasks')  // Verifique se esta tabela também está em caixa baixa
+      .from('tasks')
       .insert([
         {
           group_id: groupId,
-          title: taskTitle.trim(),
-          status: taskStatus,
+          title: taskInput.title.trim(),
+          status: taskInput.status,
         },
       ])
       .select('id, title, status');
-
-    setIsCreatingTask(false);
 
     if (error) {
       console.error('Erro ao criar tarefa:', error.message);
@@ -142,10 +138,69 @@ const Dashboard = () => {
           group.id === groupId ? { ...group, tasks: [...group.tasks, data[0]] } : group
         )
       );
+
+      setTaskInputs((prevInputs) => ({
+        ...prevInputs,
+        [groupId]: { title: '', status: 'pending' },
+      }));
+    }
+  };
+
+  const updateTask = async (groupId: string, taskId: string, updatedTitle: string, updatedStatus: 'pending' | 'in_progress' | 'completed') => {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ title: updatedTitle, status: updatedStatus })
+      .eq('id', taskId);
+
+    if (error) {
+      console.error('Erro ao atualizar tarefa:', error.message);
+      alert('Erro ao atualizar tarefa.');
+      return;
     }
 
-    setTaskTitle('');
-    setTaskStatus('pending');
+    setTaskGroups((prevGroups) =>
+      prevGroups.map((group) =>
+        group.id === groupId
+          ? {
+              ...group,
+              tasks: group.tasks.map((task) =>
+                task.id === taskId ? { ...task, title: updatedTitle, status: updatedStatus } : task
+              ),
+            }
+          : group
+      )
+    );
+  };
+
+  const deleteTask = async (groupId: string, taskId: string) => {
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', taskId);
+
+    if (error) {
+      console.error('Erro ao deletar tarefa:', error.message);
+      alert('Erro ao deletar tarefa.');
+      return;
+    }
+
+    setTaskGroups((prevGroups) =>
+      prevGroups.map((group) =>
+        group.id === groupId
+          ? { ...group, tasks: group.tasks.filter((task) => task.id !== taskId) }
+          : group
+      )
+    );
+  };
+
+  const handleTaskInputChange = (groupId: string, field: 'title' | 'status', value: string) => {
+    setTaskInputs((prevInputs) => ({
+      ...prevInputs,
+      [groupId]: {
+        ...prevInputs[groupId],
+        [field]: value,
+      },
+    }));
   };
 
   if (loading) return <p>Carregando...</p>;
@@ -182,24 +237,39 @@ const Dashboard = () => {
             <input
               type="text"
               placeholder="Título da Tarefa"
-              value={taskTitle}
-              onChange={(e) => setTaskTitle(e.target.value)}
+              value={taskInputs[group.id]?.title || ''}
+              onChange={(e) => handleTaskInputChange(group.id, 'title', e.target.value)}
             />
-            <select value={taskStatus} onChange={(e) => setTaskStatus(e.target.value as 'pending' | 'in_progress' | 'completed')}>
+            <select
+              value={taskInputs[group.id]?.status || 'pending'}
+              onChange={(e) => handleTaskInputChange(group.id, 'status', e.target.value as 'pending' | 'in_progress' | 'completed')}
+            >
               <option value="pending">Pendente</option>
               <option value="in_progress">Em Progresso</option>
               <option value="completed">Concluído</option>
             </select>
-            <button onClick={() => createTask(group.id)} disabled={isCreatingTask}>
-              {isCreatingTask ? 'Adicionando...' : 'Adicionar Tarefa'}
+            <button onClick={() => createTask(group.id)}>
+              Adicionar Tarefa
             </button>
           </div>
 
           <div style={{ marginTop: '10px' }}>
             {group.tasks.map((task) => (
-              <div key={task.id} style={{ padding: '5px 0' }}>
-                <h4>{task.title}</h4>
-                <p>Status: {task.status}</p>
+              <div key={task.id} style={{ padding: '5px 0', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  value={task.title}
+                  onChange={(e) => updateTask(group.id, task.id, e.target.value, task.status)}
+                />
+                <select
+                  value={task.status || 'pending'}
+                  onChange={(e) => updateTask(group.id, task.id, task.title, e.target.value as 'pending' | 'in_progress' | 'completed')}
+                >
+                  <option value="pending">Pendente</option>
+                  <option value="in_progress">Em Progresso</option>
+                  <option value="completed">Concluído</option>
+                </select>
+                <button onClick={() => deleteTask(group.id, task.id)}>Deletar Tarefa</button>
               </div>
             ))}
           </div>
