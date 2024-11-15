@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase } from '@/utils/supabaseClient';
-import { useRouter } from 'next/navigation';
-import type { User } from '@supabase/supabase-js';
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { supabase } from "@/utils/supabaseClient";
+import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: User | null;
@@ -20,20 +20,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const sessionUser = sessionStorage.getItem('user');
-      if (sessionUser) {
-        setUser(JSON.parse(sessionUser));
-        setLoading(false);
+      const { data, error } = await supabase.auth.getUser();
+
+      if (!error && data.user) {
+        setUser(data.user);
+        sessionStorage.setItem("user", JSON.stringify(data.user));
       } else {
-        const { data, error } = await supabase.auth.getUser();
-        if (!error && data.user) {
-          setUser(data.user);
-          sessionStorage.setItem('user', JSON.stringify(data.user));
-        } else {
-          setUser(null);
-        }
-        setLoading(false);
+        setUser(null);
       }
+      setLoading(false);
     };
 
     checkUser();
@@ -42,9 +37,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) {
-        sessionStorage.setItem('user', JSON.stringify(currentUser));
+        sessionStorage.setItem("user", JSON.stringify(currentUser));
       } else {
-        sessionStorage.removeItem('user');
+        sessionStorage.removeItem("user");
       }
     });
 
@@ -56,13 +51,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
-    sessionStorage.removeItem('user');
-    router.push('/signin');
+    sessionStorage.removeItem("user");
+    router.push("/signin");
   };
 
   return (
     <AuthContext.Provider value={{ user, loading, logout }}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
@@ -70,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
