@@ -1,0 +1,146 @@
+.container-dash {
+  display: flex;
+  background-color: #ffffff;
+  width: 100vw;
+  height: 100vh;
+  padding: 10px;
+  box-sizing: border-box;
+  gap: 15px;
+  align-items: center;
+  background-image: url("../../../public/back.png");
+}
+
+/*Container 1*/
+.box-container-1 {
+  flex: 1;
+  flex-direction: column;
+  height: 100%;
+  background-color: #d9d9d9;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: rgba(255, 255, 255, 0.2); /* Fundo semitransparente */
+  backdrop-filter: blur(10px); /* Efeito fosco */
+  -webkit-backdrop-filter: blur(10px); /* Compatibilidade Safari */
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.profile-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.profile-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.profile-name {
+  font-size: 1.2rem;
+  color: #000000;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  margin-top: 0.1rem;
+}
+
+/*Container 2*/
+
+.box-container-2 {
+  height: 15%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2rem;
+}
+
+.container-2-group-tasks {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  padding: 1rem;
+  align-items: center;
+}
+
+.container-taks {
+  flex: 7;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  height: 100%;
+}
+
+.container-2-title {
+  font-size: 1.5rem;
+}
+
+.container-2-title-h2 {
+  font-size: 1rem;
+  margin-left: 1rem;
+}
+
+.input-group-title {
+  width: 20%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  height: 50px;
+  border: 2px solid #ccc;
+}
+
+.input-group-description {
+  width: 48%;
+  height: 50px;
+  padding: 12px 20px;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  font-size: 1rem;
+  resize: none;
+}
+
+.button-tasks-group {
+  box-shadow: inset 0px 1px 0px 0px #ffffff;
+  background-color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #dcdcdc;
+  display: inline-block;
+  cursor: pointer;
+  color: #666666;
+  font-weight: bold;
+  padding: 16px 5px;
+  margin-right: 1rem;
+}
+
+.box-container-2,
+.box-container-3 {
+  background-color: #d9d9d9;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.2); /* Fundo semitransparente */
+  backdrop-filter: blur(10px); /* Efeito fosco */
+  -webkit-backdrop-filter: blur(10px); /* Compatibilidade Safari */
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.box-container-3 {
+  height: 85%;
+}
+
+.container-3-tasks-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: #666666;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
